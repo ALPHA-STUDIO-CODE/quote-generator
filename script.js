@@ -2,7 +2,7 @@ const quoteContainer = document.getElementById("quote-container");
 const quoteText = document.getElementById("quote-text");
 const authorText = document.getElementById("author-text");
 const twitterBtn = document.getElementById("twitter");
-const newQuoteBtn = document.getElementById("new-quote-btn");
+const newQuoteBtn = document.getElementById("new-quote");
 const loader = document.getElementById("loader");
 
 let apiQuotes = [];
@@ -19,51 +19,41 @@ function complete() {
   quoteContainer.style.display = "block";
 }
 
-// Gets Quote from local storage
-function getQuote() {
-  loading();
-  // Quote from a local storage
-  const localQuote =
-    localQuotes[Math.floor(Math.random() * localQuotes.length)];
-  console.log(localQuote);
-
-  //  Check is author fild is blank
-  if (!localQuote.author) {
-    authorText.innerHTML = "Unknown";
-  } else {
-    authorText.innerHTML = localQuote.author;
-  }
-
-  // Display quote to UI
-  quoteText.innerHTML = localQuote.text;
-  complete();
-}
-
-// TODO: to get API key
 // Get Quote From API
-// async function getQuote() {
-//   const apiUrl =
-//     "https://api.api-ninjas.com/v2/randomquotes?categories=success,wisdom";
-//   try {
-//     const response = await fetch(apiUrl);
-//     const apiQuotes = await response.json();
-//     console.log(apiQuotes);
-//   } catch (error) {
-//     // Catch the error
-//     console.error("Error fetching quote:", error);
-//   }
-// }
+async function getQuote() {
+  loading();
+  $.ajax({
+    method: "GET",
+    url: "https://api.api-ninjas.com/v2/randomquotes",
+    headers: { "X-Api-Key": "0nY9KBu5ih1VkTxSKobiAWW3fOQl9wjJosLOxZAX" },
+    contentType: "application/json",
+    data: { categories: "success,wisdom,inspirational" },
+    success: function (result) {
+      console.log(result);
 
-//TODO:
-// function tweetQuote() {
-//   const twitterUrl = `https://x.com/intent/tweet=${quoteText.innerHTML} - ${authorText.innerHTML}`;
-//   window.open(twitterUrl, "_blank");
-// }
+      // Display the quote to UI
+      authorText.innerHTML = result[0].author;
+      quoteText.innerHTML = result[0].quote;
+      complete();
+    },
 
-//
-
-// newQuoteBtn.addEventListener("click", getQuote);
-// twitterBtn.addEventListener("click", tweetQuote);
+    error: function ajaxError(jqXHR) {
+      console.error("Error: ", jqXHR.responseText);
+    },
+  });
+}
 
 // To load
 getQuote();
+
+// Post Quote
+function twitterQuote() {
+  const quote = quoteText.innerHTML;
+  const author = authorText.innerHTML;
+  const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(quote)} - ${encodeURIComponent(author)}`;
+  window.open(twitterUrl, "_blank");
+}
+
+// Event Listener
+newQuoteBtn.addEventListener("click", getQuote);
+twitterBtn.addEventListener("click", twitterQuote);
